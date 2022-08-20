@@ -1,9 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
+
+type question struct {
+	problem string
+	answer  string
+}
+
+func (q question) String() string {
+	return q.problem
+}
 
 func main() {
 	var flag string
@@ -25,6 +36,26 @@ func main() {
 			fmt.Println("You provided filename", os.Args[2])
 		}
 	default:
-		fmt.Println("Default filename is problems.csv")
+		questions := parseQuizFile("problems.csv")
+		for index, question := range questions {
+			fmt.Printf("Problem #%d: %s =\n", index+1, question)
+		}
 	}
+}
+
+func parseQuizFile(filename string) []question {
+	questions := make([]question, 0, 100)
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Println("not able to read file ", filename)
+		return []question{}
+	}
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		text := scanner.Text()
+		values := strings.Split(text, ",")
+		questions = append(questions, question{values[0], values[1]})
+	}
+	return questions
 }
