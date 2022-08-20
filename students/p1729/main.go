@@ -47,7 +47,7 @@ func main() {
 	default:
 		questions := parseQuizFile("problems.csv")
 		result := playQuiz(questions)
-		fmt.Println(result)
+		fmt.Printf("You scored %d out of %d ", result.correct, result.total)
 	}
 }
 
@@ -55,7 +55,7 @@ func playQuiz(questions []question) result {
 	var res result
 	reader := bufio.NewReader(os.Stdin)
 	for index, question := range questions {
-		fmt.Printf("Problem #%d: %s = ", index, question)
+		fmt.Printf("Problem #%d: %s = ", index+1, question)
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println("error while reading input")
