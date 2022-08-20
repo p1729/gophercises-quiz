@@ -12,8 +12,17 @@ type question struct {
 	answer  string
 }
 
+type result struct {
+	correct int
+	total   int
+}
+
 func (q question) String() string {
 	return q.problem
+}
+
+func (r result) String() string {
+	return fmt.Sprintf("%d/%d", r.correct, r.total)
 }
 
 func main() {
@@ -37,10 +46,26 @@ func main() {
 		}
 	default:
 		questions := parseQuizFile("problems.csv")
-		for index, question := range questions {
-			fmt.Printf("Problem #%d: %s =\n", index+1, question)
-		}
+		result := playQuiz(questions)
+		fmt.Println(result)
 	}
+}
+
+func playQuiz(questions []question) result {
+	var res result
+	reader := bufio.NewReader(os.Stdin)
+	for index, question := range questions {
+		fmt.Printf("Problem #%d: %s = ", index, question)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("error while reading input")
+		}
+		if question.answer == strings.TrimRight(input, "\n") {
+			res.correct++
+		}
+		res.total++
+	}
+	return res
 }
 
 func parseQuizFile(filename string) []question {
