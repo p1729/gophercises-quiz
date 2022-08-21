@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 type question struct {
@@ -46,25 +47,40 @@ func main() {
 		}
 	default:
 		questions := parseQuizFile("problems.csv")
-		result := playQuiz(questions)
+		result := playQuiz(questions, 20)
 		fmt.Printf("You scored %d out of %d ", result.correct, result.total)
 	}
 }
 
-func playQuiz(questions []question) result {
-	var res result
-	reader := bufio.NewReader(os.Stdin)
-	for index, question := range questions {
-		fmt.Printf("Problem #%d: %s = ", index+1, question)
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("error while reading input")
+func playQuiz(questions []question, limitInSeconds int) result {
+	res := result{0, len(questions)}
+
+	ch := make(chan bool)
+
+	go func(questions []question) {
+		reader := bufio.NewReader(os.Stdin)
+		for index, q := range questions {
+			fmt.Printf("Problem #%d: %s = ", index+1, q)
+			input, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Println("error while reading input")
+			}
+			ch <- strings.TrimRight(input, "\n") == q.answer
 		}
-		if question.answer == strings.TrimRight(input, "\n") {
+	}(questions)
+
+	go func(limitInSeconds int) {
+		time.Sleep(time.Duration(limitInSeconds) * time.Second)
+		fmt.Println("time up...")
+		close(ch)
+	}(limitInSeconds)
+
+	for correct := range ch {
+		if correct {
 			res.correct++
 		}
-		res.total++
 	}
+
 	return res
 }
 
